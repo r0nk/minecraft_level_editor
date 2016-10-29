@@ -1,0 +1,27 @@
+#!/bin/bash
+
+infile=$1
+tmpfile=$(mktemp)
+
+cat $infile | awk '
+{ 
+	split($0, chars, "")
+	for (i=1; i <= length($0); i++) {
+		printf("%s\n", chars[i])
+	}
+}' > $tmpfile
+
+echo " fill 0 4 0 50 4 50 minecraft:bedrock "
+echo " fill 0 5 0 50 5 50 minecraft:air "
+
+cat $tmpfile | awk '
+/\#/ {printf "fill " j+0 " 4 " (NR-1)%51 " " j+0 " 5 " (NR-1)%51 " minecraft:stone\n" } 
+/\./ {printf "fill " j+0 " 4 " (NR-1)%51 " " j+0 " 4 " (NR-1)%51 " minecraft:air\n" } 
+/L/ {printf "fill " j+0 " 4 " (NR-1)%51 " " j+0 " 4 " (NR-1)%51 " minecraft:torch\n" } 
+/s/ {printf "fill " j+0 " 4 " (NR-1)%51 " " j+0 " 4 " (NR-1)%51 " minecraft:log\n" } 
+/[0-9]/ {printf "fill " j+0 " 4 " (NR-1)%51 " " j+0 " 4 " (NR-1)%51 " minecraft:wool\n" } 
+{count++}
+count > 50 {j++; count=0}
+'
+
+rm $tmpfile
